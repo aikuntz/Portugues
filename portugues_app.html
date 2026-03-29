@@ -5,7 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <!-- CSP: solo permite recursos locales. Bloquea cualquier llamada a servidores externos -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'unsafe-inline'; media-src 'none';">
-<title>Português A1</title>
+<link rel="apple-touch-icon" id="app-icon" sizes="180x180" href="">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Português">
+<title>Português 🇵🇹</title>
+<script>
+// Generate icon with Portuguese flag emoji on a dark background
+(function() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 180; canvas.height = 180;
+  const ctx = canvas.getContext('2d');
+  // Dark background matching app theme
+  ctx.fillStyle = '#0f0e17';
+  ctx.roundRect(0, 0, 180, 180, 32);
+  ctx.fill();
+  // Flag emoji
+  ctx.font = '110px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🇵🇹', 90, 95);
+  document.getElementById('app-icon').href = canvas.toDataURL('image/png');
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
