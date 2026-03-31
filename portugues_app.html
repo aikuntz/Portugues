@@ -494,19 +494,16 @@ function showScreen(id) {
 function updateHomeStats() {
   const words = Object.values(progress.words);
   const studied = words.length;
-  const mastered = words.filter(w => w.correct >= 3 && w.wrong === 0).length;
+  // Dominada: más aciertos que fallos Y al menos 2 aciertos
+  const mastered = words.filter(w => w.correct >= 2 && w.correct > w.wrong).length;
 
-  // Daily streak: check consecutive days
+  // Daily streak
   const today = new Date().toDateString();
   const lastPlayed = progress.lastPlayed || null;
   const yesterday = new Date(Date.now() - 86400000).toDateString();
 
   let dailyStreak = progress.dailyStreak || 0;
-  if (lastPlayed === today) {
-    // Already played today, streak stands
-  } else if (lastPlayed === yesterday) {
-    // Played yesterday — streak active, will increment when they play today
-  } else if (lastPlayed && lastPlayed !== yesterday) {
+  if (lastPlayed && lastPlayed !== today && lastPlayed !== yesterday) {
     // Missed a day — reset streak
     dailyStreak = 0;
     progress.dailyStreak = 0;
@@ -515,7 +512,22 @@ function updateHomeStats() {
 
   document.getElementById('stat-studied').textContent = studied;
   document.getElementById('stat-mastered').textContent = mastered;
-  document.getElementById('stat-streak').textContent = dailyStreak + '🔥';
+  document.getElementById('stat-streak').textContent = (dailyStreak || 0) + '🔥';
+}
+
+// Update daily streak — called whenever a session has words answered
+function updateDailyStreak() {
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (progress.lastPlayed !== today) {
+    if (progress.lastPlayed === yesterday) {
+      progress.dailyStreak = (progress.dailyStreak || 0) + 1;
+    } else {
+      progress.dailyStreak = 1;
+    }
+    progress.lastPlayed = today;
+    saveProgress();
+  }
 }
 
 // ─── SELECTOR ───────────────────────────────────────────────────────────
@@ -1129,11 +1141,6 @@ function hideCelebration() {
   if (celebrationCallback) { celebrationCallback(); celebrationCallback = null; }
 }
 
-function celebrationGoHome() {
-  document.getElementById('celebration').style.display = 'none';
-  celebrationCallback = null;
-  _showScreen('home');
-}
 
 function showFinalResults() {
   progress.totalSessions = (progress.totalSessions || 0) + 1;
@@ -1141,17 +1148,7 @@ function showFinalResults() {
   if (pct >= 80) progress.streak = (progress.streak || 0) + 1;
   else if (pct < 50) progress.streak = 0;
 
-  // Daily streak
-  const today = new Date().toDateString();
-  const yesterday = new Date(Date.now() - 86400000).toDateString();
-  if (progress.lastPlayed !== today) {
-    if (progress.lastPlayed === yesterday) {
-      progress.dailyStreak = (progress.dailyStreak || 0) + 1;
-    } else {
-      progress.dailyStreak = 1;
-    }
-    progress.lastPlayed = today;
-  }
+  if (sessionTotal > 0) updateDailyStreak();
   saveProgress();
 
   const emoji = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '👍' : '💪';
@@ -1185,7 +1182,15 @@ function showResults() {
 function restartGame() { startGame(); }
 
 function confirmExit() {
-  // Close celebration if open, then go home
+  // Save daily streak if any words were answered this session
+  if (sessionTotal > 0) updateDailyStreak();
+  document.getElementById('celebration').style.display = 'none';
+  celebrationCallback = null;
+  _showScreen('home');
+}
+
+function celebrationGoHome() {
+  if (sessionTotal > 0) updateDailyStreak();
   document.getElementById('celebration').style.display = 'none';
   celebrationCallback = null;
   _showScreen('home');
